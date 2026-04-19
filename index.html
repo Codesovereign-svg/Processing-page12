@@ -1,0 +1,90 @@
+‎<!DOCTYPE html>
+‎<html>
+‎<head>
+‎  <title>Processing</title>
+‎  <style>
+‎    body {
+‎      font-family: Arial, sans-serif;
+‎      text-align: center;
+‎      margin-top: 100px;
+‎      background: #f5f5f5;
+‎    }
+‎    .box {
+‎      background: white;
+‎      padding: 30px;
+‎      margin: auto;
+‎      width: 80%;
+‎      max-width: 500px;
+‎      border-radius: 10px;
+‎      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+‎    }
+‎    .loader {
+‎      margin-top: 20px;
+‎      font-size: 14px;
+‎      color: gray;
+‎    }
+‎  </style>
+‎</head>
+‎
+‎<body>
+‎
+‎<div class="box">
+‎  <h2 id="title">Analyzing your data...</h2>
+‎  <p id="message">Please wait while we generate your report.</p>
+‎  <div id="result"></div>
+‎</div>
+‎
+‎<script>
+‎const params = new URLSearchParams(window.location.search);
+‎const email = params.get("email");
+‎
+‎// safety check
+‎if (!email) {
+‎  document.getElementById("title").innerText = "Missing email";
+‎  document.getElementById("message").innerText = "No email found in URL.";
+‎}
+‎
+‎async function checkStatus() {
+‎  try {
+‎    const res = await fetch("https://hook.eu2.make.com/n9k6xi82r3nqgwa1gjvzhpharfbxmj9c", {
+‎  method: "POST",
+‎  headers: {
+‎    "Content-Type": "application/json"
+‎  },
+‎  body: JSON.stringify({
+‎    email: email
+‎  })
+‎});
+‎    const data = await res.json();
+‎
+‎    // still processing
+‎    if (data.status !== "done") {
+‎      document.getElementById("message").innerText = "Still analyzing... please wait.";
+‎      setTimeout(checkStatus, 3000);
+‎      return;
+‎    }
+‎
+‎    // DONE → show teaser
+‎    document.body.innerHTML = `
+‎      <div class="box">
+‎        <h2>Your Result</h2>
+‎        <p>${data.teaser}</p>
+‎        <br>
+‎        <a href="https://your-full-report-link.com" target="_blank">
+‎          View Full Report
+‎        </a>
+‎      </div>
+‎    `;
+‎
+‎  } catch (error) {
+‎    document.getElementById("message").innerText = "Error fetching result. Retrying...";
+‎    setTimeout(checkStatus, 5000);
+‎  }
+‎}
+‎
+‎// start loop
+‎checkStatus();
+‎</script>
+‎
+‎</body>
+‎</html>
